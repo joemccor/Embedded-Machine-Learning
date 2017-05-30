@@ -1,13 +1,19 @@
 MLPIDController.c
-pid.c
-positionAcquisition.c
 -I ./.
-ann.c
+pid.c
+pid.h
+tiltControl.h
+tiltControl.c
+ball.h
+ball.c
+communication.h
+communication.c
 >compiler=C
 >memtype=cmm main ram compact
->optimize=-Os
+>optimize=-O2
 >-m32bit-doubles
+>-Wall
 >-fno-exceptions
 >defs::-std=c99
 >-lm
->BOARD::ACTIVITYBOARD
+>BOARD::HUB64MHZ

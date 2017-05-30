@@ -4,26 +4,44 @@ pid.h
 Header file for pid controller
 */
 
-#ifndef PID_H
-#define PID_H
-#if defined(__cplusplus)
-extern "C" {
-#endif
+#ifndef PID_H__
+#define PID_H__
+
+/*you header file can have declarations here*/
 
 #include "simpletools.h"
+#include "mstimer.h"
 
 typedef struct{
-	int P; // Proportionality action constant  [arbitrary]
-	int I; // Integration action constant      [arbitrary]
-	int D; // Derivative action constant       [arbitrary]
-} PIDConstants;
+	volatile float P; // Proportionality action constant  [arbitrary]
+	volatile float I; // Integration action constant      [arbitrary]
+	volatile float D; // Derivative action constant       [arbitrary]
+} PIDCONSTANTS;
 
-int pAction(PIDConstants c, int err);
-int iAction(PIDConstants c, int uerr, int uTime);
-int dAction(PIDConstants c, int uerr, int uTime);
-int pid(PIDConstants c, int err, int lerr, int t0, int t1);
+typedef struct{
+	volatile float err;
+	volatile float delta;
 
-#if defined(__cplusplus)
-}
-#endif
-#endif
+	float lastError;
+	int time;
+	int lastTime;
+	PIDCONSTANTS constants;
+} PIDINTERFACE;
+
+PIDINTERFACE* pidController;
+
+char pidCount;
+
+void initPIDs(char count);
+
+void running_pid();
+
+float pAction(PIDCONSTANTS* c, float err);
+
+float iAction(PIDCONSTANTS* c, float uerr, int uTime);
+
+float dAction(PIDCONSTANTS* c, float uerr, int uTime);
+
+void pid(PIDINTERFACE* pid);
+
+#endif /* PID_H__*/

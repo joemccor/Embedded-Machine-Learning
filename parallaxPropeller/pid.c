@@ -1,27 +1,65 @@
-typedef struct{
-	int P; // Proportionality action constant  [arbitrary]
-	int I; // Integration action constant      [arbitrary]
-	int D; // Derivative action constant       [arbitrary]
-} PIDConstants;
+#include "pid.h"
+#include "simpletools.h"
+#include "mstimer.h"
 
-int pAction(PIDConstants c, int err)
+PIDINTERFACE* pidController;
+
+char pidCount;
+
+void initPID()
 {
-	return c.P * (err);
+	pidController[pidCount] = (PIDINTERFACE){
+    .err = 0.0,
+    .lastError=0.0,
+    .time = 0,
+    .lastTime = 0,
+    .delta = 0.0,
+    .constants = (PIDCONSTANTS){.P=0.5, .I=0.0, .D=0.0}
+  };
+	pidCount++;
 }
 
-int iAction(PIDConstants c, int uerr, int uTime)
+void running_pid()
 {
-	return c.I * (uerr * uTime);
+	int counter = 0;
+	mstime_start();
+	while(1){
+		pid( &(pidController[counter]) );
+		counter = (counter+1) % pidCount;
+		pause(1);
+	}
 }
 
-int dAction(PIDConstants c, int uerr, int uTime)
+float pAction(PIDCONSTANTS* c, float err)
 {
-	return c.D * (uerr / uTime);
+	return c->P * err;
 }
 
-int pid(PIDConstants c, int err, int lerr, int t0, int t1)
+float iAction(PIDCONSTANTS* c, float uerr, int uTime)
 {
-	int tDiff = (t0 - t1);
-	int errDiff = (err - lerr);
-	return ( pAction(c, errDiff) + iAction(c, errDiff, tDiff) + dAction(c, errDiff, tDiff) );
+	return c->I * (uerr * uTime);
+}
+
+float dAction(PIDCONSTANTS* c, float uerr, int uTime)
+{
+	return c->D * (uerr / uTime);
+}
+
+void pid(PIDINTERFACE* pid)
+{
+	//time
+	pid->time = mstime_get();
+	int tDiff = pid->time - pid->lastTime;
+	pid->lastTime = pid->time;
+
+	//error
+	float errDiff = (pid->err - pid->lastError);
+	pid->lastError = pid->err;
+
+	//PID controller
+	PIDCONSTANTS* constants = &(pid->constants);
+	float proportional = pAction(constants, pid->err);
+	float integral = iAction(constants, errDiff, tDiff);
+	float differential = dAction(constants, errDiff, tDiff);
+	pid->delta = ( proportional + integral + differential );
 }
