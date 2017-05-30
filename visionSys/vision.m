@@ -1,4 +1,4 @@
-
+%% Init
 %initialize variables
 cx = 0;
 cy = 0;
@@ -6,15 +6,14 @@ xd = 0;
 yd = 0;
 
 %get webcam object
-cam = webcam(1);
+cam = webcam(2);
 
 % oper serial port for communication
-% s=serial('COM4', 'BaudRate', 115200);
-% s.Terminator = 'LF';
-% fopen(s);
+s=serial('COM4', 'BaudRate', 115200);
+s.Terminator = 'LF';
+fopen(s);
 
-
-%%
+%% Main loop, stop with ctrl-c in command line
 while(1)
     datevec(now);
     starttime = ans(6);
@@ -42,9 +41,9 @@ while(1)
             end
         end
     end
-    %mask = uint8(mask);
+    mask = uint8(mask);
     
-%     imshow(mask*255);
+    imshow(mask*255);
     
     %map coords to table, max distance of 100, min of -100. 0 is center
     
@@ -63,18 +62,19 @@ while(1)
     
     for c = toSend
         if c == '!'
-%             fprintf(s, '\n');
+            fprintf(s, '\n');
         else
-%             fprintf(s, '%c', c);
+            fprintf(s, '%c', c);
         end
         pause(delay);
     end
     
+    %show time elapse since last loop iteration
     datevec(now);
     endtime = ans(6);
     endtime - starttime
 end
-%%
+%% Adjust PID constants
 toSend = ['P:0.9!I:0.0!D:0.0!'];
 toSend;
 delay = 0.02;
@@ -87,7 +87,7 @@ for c = toSend
     end
     pause(delay);
 end
-%%
+%% Request PID constants and table pitch and roll
 
 toSend = ['R:0!'];
 toSend;
@@ -101,13 +101,13 @@ for c = toSend
     end
     pause(delay);
 end
-%%
+%% Read serial port
 fscanf(s)
 
 %%
 
 %close all and clean up
-% fclose(s)
-% delete(s)
-% clear s
+fclose(s)
+delete(s)
+clear s
 clear all
